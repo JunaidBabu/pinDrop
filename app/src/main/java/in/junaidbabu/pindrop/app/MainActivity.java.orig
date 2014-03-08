@@ -7,9 +7,11 @@ import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
-
+<<<<<<< Updated upstream
 import android.view.ContextMenu;
-
+=======
+import android.view.ActionMode;
+>>>>>>> Stashed changes
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,29 +23,27 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 public class MainActivity extends ActionBarActivity {
 
     TextView t;
-    MySQLiteHelper db;
-    List<DataClass> list;
-    ListView myListView;
+
 
     public void RefreshList(){
-
-        list = db.getAllLocations();
+        ListView myListView = (ListView) findViewById(R.id.listView);
+        //ArrayList<String> myStringArray1 =  new ArrayList<String>();
+        final MySQLiteHelper db = new MySQLiteHelper(this);
+        final List<DataClass> list = db.getAllLocations();
         if(list.size()==0){
-            t.setText("Share Pins from Google Maps to pinDrop");
+            t.setText("Share Dropped Pins to pinDrop");
             return;
         }
-        t.setText("");
 
         List<RowItem> rowItems;
         rowItems = new ArrayList<RowItem>();
@@ -67,17 +67,11 @@ public class MainActivity extends ActionBarActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent i = new Intent(Intent.ACTION_VIEW,
                         Uri.parse(list.get(position).getUrl().toString()));
-
-                 try{
-                    startActivity(i);
-                 }catch(Exception e){
-                     Toast.makeText(MainActivity.this,"Something went wrong! :(", Toast.LENGTH_SHORT).show();
-                 }
-
+                startActivity(i);
                 //Toast.makeText(MainActivity.this, list.get(position).getUrl().toString(), Toast.LENGTH_SHORT).show();
             }
         });
-//<<<<<<< Updated upstream
+<<<<<<< Updated upstream
         registerForContextMenu(myListView);
         /*myListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 =======
@@ -148,7 +142,7 @@ public class MainActivity extends ActionBarActivity {
         });
         */
     }
-//<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,ContextMenu.ContextMenuInfo menuInfo) {
@@ -156,65 +150,36 @@ public class MainActivity extends ActionBarActivity {
 
 
         menu.setHeaderTitle(v.getId());
-        menu.add(0, v.getId(), 0, "Edit");
-        menu.add(0, v.getId(), 0, "Copy URL");
-        menu.add(0, v.getId(), 0, "Delete");
+        menu.add(0, v.getId(), 0, "Action 1");
+        menu.add(0, v.getId(), 0, "Action 2");
     }
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
-        if(item.getTitle().equals("Edit")){editItem(info.position);}
-        else if(item.getTitle().equals("Delete")){deleteItem(info.position);}
-        else if(item.getTitle().equals("Copy URL")){copyItem(item.getItemId());}
+        if(item.getTitle()=="Action 1"){function1(item.getItemId());}
+        else if(item.getTitle()=="Action 2"){function2(item.getItemId());}
         else {return false;}
         return true;
     }
 
-    private void copyItem(int itemId) {
-
-    }
-
-    private void deleteItem(final int position) {
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Delete entry")
-                .setMessage("Are you sure you want to delete this entry?")
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        db.deleteLocation(list.get(position).getId());
-                        RefreshList();
-                        // continue with delete
-                    }
-                })
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // do nothing
-                    }
-                }).show();
-    }
-
-    void editItem(int position) {
-
-    }
-
     public void function1(int id){
-        Toast.makeText(this, "function 1 called"+Integer.toString(id), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "function 1 called", Toast.LENGTH_SHORT).show();
     }
     public void function2(int id){
         Toast.makeText(this, "function 2 called", Toast.LENGTH_SHORT).show();
     }
 
+=======
     private AdView adView;
     private static final String AD_UNIT_ID = "a15318ef8b15a1f";
-
+>>>>>>> Stashed changes
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
 
-        myListView = (ListView) findViewById(R.id.listView);
-        db = new MySQLiteHelper(this);
 
         adView = new AdView(this);
         adView.setAdSize(AdSize.BANNER);
