@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -62,7 +63,8 @@ public class MainActivity extends ActionBarActivity {
                 //Toast.makeText(MainActivity.this, list.get(position).getUrl().toString(), Toast.LENGTH_SHORT).show();
             }
         });
-        myListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        registerForContextMenu(myListView);
+        /*myListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                 new AlertDialog.Builder(MainActivity.this)
@@ -83,7 +85,35 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             }
         });
+        */
     }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+
+        menu.setHeaderTitle(v.getId());
+        menu.add(0, v.getId(), 0, "Action 1");
+        menu.add(0, v.getId(), 0, "Action 2");
+    }
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+        if(item.getTitle()=="Action 1"){function1(item.getItemId());}
+        else if(item.getTitle()=="Action 2"){function2(item.getItemId());}
+        else {return false;}
+        return true;
+    }
+
+    public void function1(int id){
+        Toast.makeText(this, "function 1 called", Toast.LENGTH_SHORT).show();
+    }
+    public void function2(int id){
+        Toast.makeText(this, "function 2 called", Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
