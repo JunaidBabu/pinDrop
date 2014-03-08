@@ -1,11 +1,18 @@
 package in.junaidbabu.pindrop.app;
 
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
+import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ImageSpan;
 import android.util.Log;
 
 import android.view.ContextMenu;
@@ -15,9 +22,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,8 +68,6 @@ public class MainActivity extends ActionBarActivity {
         CustomListViewAdapter adapter = new CustomListViewAdapter(this,
                 R.layout.list_item, rowItems);
 
-        //myStringArray1.add("something");
-        //ArrayAdapter<String> myarrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, myStringArray1);
         myListView.setAdapter(adapter);
         myListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -73,91 +80,18 @@ public class MainActivity extends ActionBarActivity {
                  }catch(Exception e){
                      Toast.makeText(MainActivity.this,"Something went wrong! :(", Toast.LENGTH_SHORT).show();
                  }
-
-                //Toast.makeText(MainActivity.this, list.get(position).getUrl().toString(), Toast.LENGTH_SHORT).show();
             }
         });
-//<<<<<<< Updated upstream
         registerForContextMenu(myListView);
-        /*myListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-=======
-        final ActionMode.Callback modeCallBack = new ActionMode.Callback() {
-
-            public boolean onPrepareActionMode(ActionMode mode, Menu menu){
-                return false;
-            }
-
-
-            public void onDestroyActionMode(ActionMode mode) {
-                mode = null;
-            }
-
-            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                return true;
-            }
-
-            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-
-                int id = item.getItemId();
-                switch (id) {
-                    case R.id.action_delete: {
-                        //aAdpt.remove( aAdpt.getItem(aAdpt.currentSelection) );
-                        //mode.finish();
-                        Toast.makeText(MainActivity.this, "something", Toast.LENGTH_SHORT).show();
-
-                        break;
-                    }
-                    default:
-                        return false;
-
-                }
-                return false;
-            }
-        };
-        myListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            public boolean onItemLongClick (AdapterView parent, View view, int position, long id) {
-                //System.out.println("Long click");
-                startActionMode(modeCallBack);
-                view.setSelected(true);
-                return true;
-            }
-        });
-
-
-       /* myListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
->>>>>>> Stashed changes
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Delete entry")
-                        .setMessage("Are you sure you want to delete this entry?")
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                db.deleteLocation(list.get(position).getId());
-                                RefreshList();
-                                // continue with delete
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        }).show();
-                return true;
-            }
-        });
-        */
     }
-//<<<<<<< Updated upstream
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
 
-
-        menu.setHeaderTitle(v.getId());
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        menu.setHeaderTitle(list.get(info.position).getTitle());
         menu.add(0, v.getId(), 0, "Edit");
-        menu.add(0, v.getId(), 0, "Copy URL");
         menu.add(0, v.getId(), 0, "Delete");
     }
     @Override
@@ -166,14 +100,11 @@ public class MainActivity extends ActionBarActivity {
 
         if(item.getTitle().equals("Edit")){editItem(info.position);}
         else if(item.getTitle().equals("Delete")){deleteItem(info.position);}
-        else if(item.getTitle().equals("Copy URL")){copyItem(item.getItemId());}
         else {return false;}
         return true;
     }
 
-    private void copyItem(int itemId) {
 
-    }
 
     private void deleteItem(final int position) {
         new AlertDialog.Builder(MainActivity.this)
@@ -193,16 +124,59 @@ public class MainActivity extends ActionBarActivity {
                 }).show();
     }
 
-    void editItem(int position) {
+    ChipsMultiAutoCompleteTextview mu;
+
+    void editItem(final int position) {
+        LayoutInflater li = LayoutInflater.from(this);
+        View promptsView = li.inflate(R.layout.prompt, null);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                this);
+        alertDialogBuilder.setView(promptsView);
+        final EditText userInput = (EditText) promptsView
+                .findViewById(R.id.editTextTitle);
+        userInput.setText(list.get(position).getTitle());
+
+
+        mu = (ChipsMultiAutoCompleteTextview) promptsView.findViewById(R.id.editTextTags);
+        String[] item = getResources().getStringArray(R.array.country);
+        //Log.i("", "Country Count : " + item.length);
+        mu.setText(db.getTags(list.get(position).getId()));
+        mu.setChips();
+        mu.setAdapter(new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, item));
+        mu.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
+
+
+
+        alertDialogBuilder
+                .setCancelable(false)
+                .setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int id) {
+                                final String[] ar=mu.getText().toString().split(",");
+                                for(int i =0; i<ar.length;i++)
+                                    ar[i]=toTitle(ar[i]);
+                                list.get(position).setTitle(userInput.getText().toString());
+                                db.updateLocation(list.get(position));
+                                db.createTag(ar, list.get(position).getId());
+                                //MySQLiteHelper db = new MySQLiteHelper(MainActivity.this);
+                                //db.addLocation(new DataClass(userInput.getText().toString(), finalLocation, finalUrl));
+                                RefreshList();
+                            }
+                        })
+                .setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
 
     }
 
-    public void function1(int id){
-        Toast.makeText(this, "function 1 called"+Integer.toString(id), Toast.LENGTH_SHORT).show();
-    }
-    public void function2(int id){
-        Toast.makeText(this, "function 2 called", Toast.LENGTH_SHORT).show();
-    }
+
 
     private AdView adView;
     private static final String AD_UNIT_ID = "a15318ef8b15a1f";
@@ -216,16 +190,16 @@ public class MainActivity extends ActionBarActivity {
         myListView = (ListView) findViewById(R.id.listView);
         db = new MySQLiteHelper(this);
 
-        adView = new AdView(this);
-        adView.setAdSize(AdSize.BANNER);
-        adView.setAdUnitId(AD_UNIT_ID);
-        LinearLayout layout = (LinearLayout) findViewById(R.id.layout);
-        layout.addView(adView);
-        AdRequest adRequest = new AdRequest.Builder()
-               // .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-               // .addTestDevice("INSERT_YOUR_HASHED_DEVICE_ID_HERE")
-                .build();
-        adView.loadAd(adRequest);
+//        adView = new AdView(this);
+//        adView.setAdSize(AdSize.BANNER);
+//        adView.setAdUnitId(AD_UNIT_ID);
+//        LinearLayout layout = (LinearLayout) findViewById(R.id.layout);
+//        layout.addView(adView);
+//        AdRequest adRequest = new AdRequest.Builder()
+//                .addTestDevice("90E3B0F34FB84C76925A056D1E16292A")
+//                .addTestDevice("358001041154770")
+//                .build();
+//        adView.loadAd(adRequest);
 
         t = (TextView)findViewById(R.id.text1);
         RefreshList();
@@ -238,24 +212,17 @@ public class MainActivity extends ActionBarActivity {
                 String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
                 if (sharedText != null) {
                     String[] line;
-                    String title="", location="", url="";
+                    String location="", url="";
                     line = sharedText.split("[\\r\\n]+");
                     Log.i("line to string", line.toString());
 
                     for(int i=0;i<line.length-1;i++){
                         //Toast.makeText(this, Integer.toString(i)+" "+line[i], Toast.LENGTH_LONG).show();
                         //Log.i("text",Integer.toString(i)+" "+line[i]);
-                        location+=line[i];
+                        location+=line[i]+" ";
                     }
                     location=location.replace("Dropped Pin", "");
                     url = line[line.length-1];
-                    //final MySQLiteHelper db = new MySQLiteHelper(this);
-                    //db.addLocation(new DataClass("some title", "some location","some url"));
-
-                    //List<DataClass> list = db.getAllLocations();
-                    //t.setText(Integer.toString(list.size()));
-                    //list.get(0).getLocation().toString()
-                    Toast.makeText(this, "selected settings", Toast.LENGTH_LONG).show();
                     LayoutInflater li = LayoutInflater.from(this);
                     View promptsView = li.inflate(R.layout.prompt, null);
 
@@ -263,7 +230,7 @@ public class MainActivity extends ActionBarActivity {
                             this);
                     alertDialogBuilder.setView(promptsView);
                     final EditText userInput = (EditText) promptsView
-                            .findViewById(R.id.editTextDialogUserInput);
+                            .findViewById(R.id.editTextTitle);
                     final String finalLocation = location;
                     final String finalUrl = url;
                     alertDialogBuilder
@@ -309,6 +276,9 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            TelephonyManager tManager = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
+            String uid = tManager.getDeviceId();
+            Log.v("Device ID", uid);
 
         }
         return super.onOptionsItemSelected(item);
@@ -337,6 +307,33 @@ public class MainActivity extends ActionBarActivity {
             adView.destroy();
         }
         super.onDestroy();
+    }
+
+    public String toTitle(String s) {
+
+        s=s.trim();
+        final String ACTIONABLE_DELIMITERS = " '-/"; // these cause the character following
+        // to be capitalized
+
+        StringBuilder sb = new StringBuilder();
+        boolean capNext = true;
+
+        for (char c : s.toCharArray()) {
+            c = (capNext)
+                    ? Character.toUpperCase(c)
+                    : Character.toLowerCase(c);
+            sb.append(c);
+            capNext = (ACTIONABLE_DELIMITERS.indexOf((int) c) >= 0); // explicit cast not needed
+        }
+        return sb.toString();
+    }
+    public String arrayToComma(String[] name){
+        StringBuilder sb = new StringBuilder();
+        for (String st : name) {
+            sb.append('\'').append(st).append('\'').append(',');
+        }
+        if (name.length != 0) sb.deleteCharAt(sb.length()-1);
+        return sb.toString();
     }
 
 }

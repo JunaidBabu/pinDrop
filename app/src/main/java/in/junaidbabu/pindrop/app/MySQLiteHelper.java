@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,9 +34,19 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                 "title TEXT, "+
                 "location TEXT, "+
                 "url TEXT )";
+        String CREATE_tags_TABLE = "CREATE TABLE tags ( " +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "title TEXT, "+
+                "UNIQUE(title))";
+
+        String CREATE_item_tags_TABLE = "CREATE TABLE location_tags ( " +
+                "location_id INTEGER, "+
+                "tag TEXT )";
 
         // create locations table
         db.execSQL(CREATE_location_TABLE);
+        db.execSQL(CREATE_tags_TABLE);
+        db.execSQL(CREATE_item_tags_TABLE);
     }
 
     @Override
@@ -54,7 +65,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
      */
 
     // Books table name
-    private static final String TABLE_BOOKS = "locations";
+    private static final String TABLE_LOCATIONS = "locations";
 
     // Books Table Columns names
     private static final String KEY_ID = "id";
@@ -63,9 +74,69 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private static final String KEY_URL = "url";
 
     private static final String[] COLUMNS = {KEY_ID,KEY_TITLE,KEY_LOCATION, KEY_URL};
+    private static final String[] COLUMNS_tags = {"location_id", "tag"};
 
+    public String getTags(int location_id){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // 2. build query
+        Cursor cursor =
+                db.query("location_tags", // a. table
+                        COLUMNS_tags , // b. column names
+                        " location_id = ?", // c. selections
+                        new String[] { String.valueOf(location_id) }, // d. selections args
+                        null, // e. group by
+                        null, // f. having
+                        null, // g. order by
+                        null); // h. limit
+
+        String ar="";
+        if (cursor.moveToFirst()) {
+            do {
+                ar+=cursor.getString(1)+",";
+
+            } while (cursor.moveToNext());
+        }
+        return ar;
+    }
+    public void createTag(String[] tag, int location_id){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete("location_tags",
+                "location_id = ?",
+                new String[] { String.valueOf(location_id) });
+        for(int i=0;i<tag.length;i++){
+            ContentValues values = new ContentValues();
+            values.put(KEY_TITLE, tag[i]);
+            ContentValues tags = new ContentValues();
+            tags.put("location_id", location_id);
+            tags.put("tag", tag[i]);
+
+
+            try{
+
+            db.insert("tags", // table
+                    null, //nullColumnHack
+                    values); // key/value -> keys = column names/ values = column values
+
+            }catch (Exception e){
+                Log.w("SQL Error", "Mostly not unique stuff, lite only!");
+            }
+            try{
+
+                db.insert("location_tags", // table
+                        null, //nullColumnHack
+                        tags); // key/value -> keys = column names/ values = column values
+
+            }catch (Exception e){
+                Log.w("SQL Error", "Mostly not unique stuff, lite only!");
+            }
+        }
+
+
+        db.close();
+    }
     public void addLocation(DataClass location){
-        Log.d("addBook", location.toString());
+        //Log.d("addBook", location.toString());
         // 1. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -76,7 +147,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         values.put(KEY_URL, location.getUrl());
 
         // 3. insert
-        db.insert(TABLE_BOOKS, // table
+        db.insert(TABLE_LOCATIONS, // table
                 null, //nullColumnHack
                 values); // key/value -> keys = column names/ values = column values
 
@@ -91,7 +162,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
         // 2. build query
         Cursor cursor =
-                db.query(TABLE_BOOKS, // a. table
+                db.query(TABLE_LOCATIONS, // a. table
                         COLUMNS, // b. column names
                         " id = ?", // c. selections
                         new String[] { String.valueOf(id) }, // d. selections args
@@ -122,7 +193,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         List<DataClass> books = new LinkedList<DataClass>();
 
         // 1. build the query
-        String query = "SELECT  * FROM " + TABLE_BOOKS;
+        String query = "SELECT  * FROM " + TABLE_LOCATIONS;
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -162,7 +233,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         values.put(KEY_URL, book.getUrl());
 
         // 3. updating row
-        int i = db.update(TABLE_BOOKS, //table
+        int i = db.update(TABLE_LOCATIONS, //table
                 values, // column/value
                 KEY_ID+" = ?", // selections
                 new String[] { String.valueOf(book.getId()) }); //selection args
@@ -181,7 +252,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         // 2. delete
-        db.delete(TABLE_BOOKS,
+        db.delete(TABLE_LOCATIONS,
                 KEY_ID+" = ?",
                 new String[] { String.valueOf(id) });
 
