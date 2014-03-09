@@ -1,22 +1,13 @@
 package in.junaidbabu.pindrop.app;
 
 import android.app.AlertDialog;
-import android.content.ClipData;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.telephony.TelephonyManager;
-import android.text.Editable;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.style.ImageSpan;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-
 import android.view.ContextMenu;
-
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,14 +15,11 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 
 import java.util.ArrayList;
@@ -139,7 +127,7 @@ public class MainActivity extends ActionBarActivity {
 
 
         mu = (ChipsMultiAutoCompleteTextview) promptsView.findViewById(R.id.editTextTags);
-        String[] item = getResources().getStringArray(R.array.country);
+        String[] item = db.getTags();
         //Log.i("", "Country Count : " + item.length);
         mu.setText(db.getTags(list.get(position).getId()));
         mu.setChips();
@@ -216,11 +204,8 @@ public class MainActivity extends ActionBarActivity {
                     line = sharedText.split("[\\r\\n]+");
                     Log.i("line to string", line.toString());
 
-                    for(int i=0;i<line.length-1;i++){
-                        //Toast.makeText(this, Integer.toString(i)+" "+line[i], Toast.LENGTH_LONG).show();
-                        //Log.i("text",Integer.toString(i)+" "+line[i]);
+                    for(int i=0;i<line.length-1;i++)
                         location+=line[i]+" ";
-                    }
                     location=location.replace("Dropped Pin", "");
                     url = line[line.length-1];
                     LayoutInflater li = LayoutInflater.from(this);
@@ -276,9 +261,8 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            TelephonyManager tManager = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
-            String uid = tManager.getDeviceId();
-            Log.v("Device ID", uid);
+            Intent i = new Intent(this, Home.class);
+            startActivity(i);
 
         }
         return super.onOptionsItemSelected(item);
@@ -309,31 +293,24 @@ public class MainActivity extends ActionBarActivity {
         super.onDestroy();
     }
 
-    public String toTitle(String s) {
+    public String toTitle(String input) {
 
-        s=s.trim();
-        final String ACTIONABLE_DELIMITERS = " '-/"; // these cause the character following
-        // to be capitalized
+        StringBuilder titleCase = new StringBuilder();
+        boolean nextTitleCase = true;
 
-        StringBuilder sb = new StringBuilder();
-        boolean capNext = true;
+        for (char c : input.toCharArray()) {
+            if (Character.isSpaceChar(c)) {
+                nextTitleCase = true;
+            } else if (nextTitleCase) {
+                c = Character.toTitleCase(c);
+                nextTitleCase = false;
+            }
 
-        for (char c : s.toCharArray()) {
-            c = (capNext)
-                    ? Character.toUpperCase(c)
-                    : Character.toLowerCase(c);
-            sb.append(c);
-            capNext = (ACTIONABLE_DELIMITERS.indexOf((int) c) >= 0); // explicit cast not needed
+            titleCase.append(c);
         }
-        return sb.toString();
+
+        return titleCase.toString();
     }
-    public String arrayToComma(String[] name){
-        StringBuilder sb = new StringBuilder();
-        for (String st : name) {
-            sb.append('\'').append(st).append('\'').append(',');
-        }
-        if (name.length != 0) sb.deleteCharAt(sb.length()-1);
-        return sb.toString();
-    }
+
 
 }

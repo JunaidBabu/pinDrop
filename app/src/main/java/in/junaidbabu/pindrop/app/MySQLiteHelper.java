@@ -99,6 +99,24 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         }
         return ar;
     }
+    public String[] getTags(){
+        String query = "SELECT  * FROM " + "tags";
+
+        // 2. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        // 3. go over each row, build book and add it to list
+        List<String> myList = new ArrayList<String>();
+        if (cursor.moveToFirst()) {
+            do {
+                myList.add(cursor.getString(1));
+
+            } while (cursor.moveToNext());
+        }
+        String[] arr = myList.toArray(new String[myList.size()]);
+        return arr;
+    }
     public void createTag(String[] tag, int location_id){
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete("location_tags",
@@ -108,9 +126,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             ContentValues values = new ContentValues();
             values.put(KEY_TITLE, tag[i]);
             ContentValues tags = new ContentValues();
+            if(tag[i].length()>0){
             tags.put("location_id", location_id);
             tags.put("tag", tag[i]);
-
+            }
 
             try{
 

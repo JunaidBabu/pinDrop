@@ -96,7 +96,11 @@ public class ChipsMultiAutoCompleteTextview extends MultiAutoCompleteTextView im
                 x = x+ c.length() +1;
             }
             // set chips span
-            setText(ssb);
+            try{
+                setText(ssb);
+            }catch (Exception e){
+
+            }
             // move cursor to last
             setSelection(getText().length());
         }

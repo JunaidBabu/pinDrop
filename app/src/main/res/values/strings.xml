@@ -5,21 +5,12 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
-    <string-array name="country">
-        <item >India</item>
-        <item>United States</item>
-        <item>Canada</item>
-        <item>Australia</item>
-        <item>United Kingdom</item>
-        <item>Philippines</item>
-        <item >Japan</item>
-        <item>Italy</item>
-        <item>Germany</item>
-        <item>Russia</item>
-        <item>Malaysia</item>
-        <item>France</item>
-        <item>Sweden</item>
-        <item>New Zealand</item>
-        <item>Singapore</item>
-    </string-array>
+
+
+    <string name="title_activity_main_activity2">MainActivity</string>
+    <string name="title_activity_home">Home</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_example">Example action</string>
+
 </resources>
