@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -174,6 +175,61 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    public List<DataClass> getLocation(String tag){
+
+        List<DataClass> books = new LinkedList<DataClass>();
+        Log.i("tag",tag);
+        // 1. build the query
+        String query = "SELECT  * FROM " + TABLE_LOCATIONS;
+        SQLiteDatabase db = this.getWritableDatabase();
+        //assert db != null;
+        Cursor cursor =
+                db.query("location_tags", // a. table
+                        COLUMNS_tags, // b. column names
+                        "tag=?", // c. selections
+                        new String[] { tag }, // d. selections args
+                        null, // e. group by
+                        null, // f. having
+                        null);
+        // 2. get reference to writable DB
+
+        Cursor cursor_loc = db.rawQuery(query, null);
+
+        ArrayList<Integer> loc_ids = new ArrayList<Integer>();
+        // 3. go over each row, build book and add it to list
+        DataClass book = new DataClass();
+        if (cursor.moveToFirst()) {
+            do {
+                loc_ids.add(Integer.parseInt(cursor.getString(0)));
+            } while (cursor.moveToNext());
+        }
+        if(loc_ids.size()>0)
+            Log.i("loc_ids",loc_ids.get(0).toString());
+        if (cursor_loc.moveToFirst()) {
+            do {
+                try{
+                    if(Arrays.asList(loc_ids).contains(Integer.parseInt(cursor.getString(0)))){
+
+                    book.setId(Integer.parseInt(cursor.getString(0)));
+                    book.setTitle(cursor.getString(1));
+                    book.setLocation(cursor.getString(2));
+                    book.setUrl(cursor.getString(3));
+
+                    // Add book to books
+                    books.add(book);
+
+                    }
+                }catch (Exception e){
+
+                }
+            } while (cursor.moveToNext());
+        }
+
+        //Log.d("getAllBooks()", books.toString());
+
+        return books;
+    }
+
     public DataClass getLocation(int id){
 
         // 1. get reference to readable DB
@@ -233,9 +289,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
 
-        Log.d("getAllBooks()", books.toString());
+        //Log.d("getAllBooks()", books.toString());
 
         // return books
+
         return books;
     }
 

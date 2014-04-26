@@ -125,7 +125,10 @@ public class Home extends ActionBarActivity
     }
 
     public void onSectionAttached(int number) {
-        mTitle = db.getTags()[number-1];
+        if(db.getTags().length>0)
+            mTitle = db.getTags()[number-1];
+        else
+            mTitle = "Home";
     }
 
     public void restoreActionBar() {
@@ -156,6 +159,11 @@ public class Home extends ActionBarActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            Log.i("Settings Clicked", "True that");
+            List<DataClass> a = db.getLocation("IIT");
+            List<DataClass> all = db.getAllLocations();
+            Log.i("Location 1 of IIT", a.toString());
+            Log.i("first of all",all.get(0).getLocation());
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -186,11 +194,14 @@ public class Home extends ActionBarActivity
 
         public PlaceholderFragment() {
         }
-        public void RefreshList(){
+        public void RefreshList(int pos){
 
-            list = db.getAllLocations();
+            if(pos==-1)
+                list = db.getAllLocations();
+            else
+                list=db.getLocation(db.getTags()[pos]);
 
-
+            //list = db.getAllLocations();
             List<RowItem> rowItems;
             rowItems = new ArrayList<RowItem>();
 
@@ -264,7 +275,7 @@ public class Home extends ActionBarActivity
                     .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             db.deleteLocation(list.get(position).getId());
-                            RefreshList();
+                            RefreshList(-1);
                             // continue with delete
                         }
                     })
@@ -312,7 +323,7 @@ public class Home extends ActionBarActivity
                                     db.createTag(ar, list.get(position).getId());
                                     //MySQLiteHelper db = new MySQLiteHelper(MainActivity.this);
                                     //db.addLocation(new DataClass(userInput.getText().toString(), finalLocation, finalUrl));
-                                    RefreshList();
+                                    RefreshList(-1);
                                 }
                             })
                     .setNegativeButton("Cancel",
@@ -332,7 +343,7 @@ public class Home extends ActionBarActivity
             TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             myListView = (ListView) rootView.findViewById(R.id.listViewHome);
             textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
-            RefreshList();
+            RefreshList(getArguments().getInt(ARG_SECTION_NUMBER)-1);
 
             return rootView;
         }
